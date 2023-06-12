@@ -11,7 +11,7 @@ void main() {
 
 	string path = "Resources/balls.png";
 	Mat img = imread(path);
-	Mat imgGray, imgBlur, imgCanny, imgDil, imgErode;
+	Mat imgGray, imgDil, imgErode;
 
 	cvtColor(img, imgGray, COLOR_BGR2GRAY);
 

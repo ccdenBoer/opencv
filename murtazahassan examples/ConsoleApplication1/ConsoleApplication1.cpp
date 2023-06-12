@@ -9,18 +9,31 @@ using namespace std;
 
 void main() {
 
-	string path = "Resources/test.png";
+	string path = "C:/Users/coend/Downloads/Images/Images/Images1/kerstballen.bmp";
 	Mat img = imread(path);
-	Mat imgGray, imgBlur1, imgBlur2, imgBlur3;
+	Mat imgHSV, mask;
+	int hmin = 0, smin = 110, vmin = 153;
+	int hmax = 19, smax = 240, vmax = 255;
 
-	cvtColor(img, imgGray, COLOR_BGR2GRAY);
-	GaussianBlur(imgGray, imgBlur1, Size(7, 7), 5, 0);
-	GaussianBlur(imgGray, imgBlur2, Size(7, 7), 5, 0);
-	GaussianBlur(imgGray, imgBlur3, Size(7, 7), 14, 0);
+	cvtColor(img, imgHSV, COLOR_BGR2HSV);
 
-	imshow("Image", img);
-	imshow("Image Blur 1", imgBlur1);
-	imshow("Image Blur 2", imgBlur2);
-	imshow("Image Blur 3", imgBlur3);
-	waitKey(0);
+	namedWindow("Trackbars", (640, 200));
+	createTrackbar("Hue Min", "Trackbars", &hmin, 179);
+	createTrackbar("Hue Max", "Trackbars", &hmax, 179);
+	createTrackbar("Sat Min", "Trackbars", &smin, 255);
+	createTrackbar("Sat Max", "Trackbars", &smax, 255);
+	createTrackbar("Val Min", "Trackbars", &vmin, 255);
+	createTrackbar("Val Max", "Trackbars", &vmax, 255);
+
+	while (true) {
+
+		Scalar lower(hmin, smin, vmin);
+		Scalar upper(hmax, smax, vmax);
+		inRange(imgHSV, lower, upper, mask);
+
+		imshow("Image", img);
+		imshow("Image HSV", imgHSV);
+		imshow("Image Mask", mask);
+		waitKey(1);
+	}
 }
