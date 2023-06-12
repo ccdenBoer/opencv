@@ -9,29 +9,18 @@ using namespace std;
 
 void main() {
 
-	string path = "C:/Users/coend/Pictures/perspective poster.jpg";
+	string path = "Resources/test.png";
 	Mat img = imread(path);
-	Mat matrix, imgWarp;
+	Mat imgGray, imgBlur1, imgBlur2, imgBlur3;
 
-	float scale = 0.3;
-
-	resize(img, img, Size(), scale, scale);
-
-	float w = 700, h = 500;
-	
-	Point2f src[4] = { {scale*480,scale*1500},{scale*2450,scale*350},{scale*860,scale*2560},{scale*3190,scale*2541} };
-	Point2f dst[4] = { {0.0f,0.0f},{w,0.0f},{0.0f,h},{w,h} };
-
-	matrix = getPerspectiveTransform(src, dst);
-	warpPerspective(img, imgWarp, matrix, Point(w, h));
-
-	for (int i = 0; i < 4; i++)
-	{
-		circle(img, src[i], 10, Scalar(0, 0, 255), FILLED);
-	}
+	cvtColor(img, imgGray, COLOR_BGR2GRAY);
+	GaussianBlur(imgGray, imgBlur1, Size(7, 7), 5, 0);
+	GaussianBlur(imgGray, imgBlur2, Size(7, 7), 5, 0);
+	GaussianBlur(imgGray, imgBlur3, Size(7, 7), 14, 0);
 
 	imshow("Image", img);
-	imshow("Image Warp", imgWarp);
+	imshow("Image Blur 1", imgBlur1);
+	imshow("Image Blur 2", imgBlur2);
+	imshow("Image Blur 3", imgBlur3);
 	waitKey(0);
-
 }
