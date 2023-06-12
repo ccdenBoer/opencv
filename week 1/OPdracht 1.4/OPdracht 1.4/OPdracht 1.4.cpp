@@ -9,7 +9,7 @@ using namespace std;
 
 void main() {
 
-	string path = "C:/Users/coend/Pictures/perspective poster.jpg";
+	string path = "Resources/perspective poster.jpg";
 	Mat img = imread(path);
 	Mat matrix, imgWarp;
 
@@ -18,8 +18,8 @@ void main() {
 	resize(img, img, Size(), scale, scale);
 
 	float w = 700, h = 500;
-	
-	Point2f src[4] = { {scale*480,scale*1500},{scale*2450,scale*350},{scale*860,scale*2560},{scale*3190,scale*2541} };
+
+	Point2f src[4] = { {scale * 480,scale * 1500},{scale * 2450,scale * 350},{scale * 860,scale * 2560},{scale * 3190,scale * 2541} };
 	Point2f dst[4] = { {0.0f,0.0f},{w,0.0f},{0.0f,h},{w,h} };
 
 	matrix = getPerspectiveTransform(src, dst);
