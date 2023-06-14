@@ -8,16 +8,18 @@ using namespace std;
 
 void main() {
 
-	string path = "Resources/test.jpg";
+	string path = "C:/Users/coend/Pictures/perspective poster.jpg";
 	Mat img = imread(path);
 	Mat imgGray, imgBlur, imgCanny, imgDil, imgErode;
 
 	int cannyThresh1 = 0;
 	int cannyThresh2 = 0;
 
+	resize(img, img, Size(), 0.3, 0.3);
+
 	namedWindow("Trackbars", (640, 200));
-	createTrackbar("Threshold 1", "Trackbars", &cannyThresh1, 100);
-	createTrackbar("Threshold 2", "Trackbars", &cannyThresh2, 100);
+	createTrackbar("Threshold 1", "Trackbars", &cannyThresh1, 500);
+	createTrackbar("Threshold 2", "Trackbars", &cannyThresh2, 500);
 
 	cvtColor(img, imgGray, COLOR_BGR2GRAY);
 	GaussianBlur(imgGray, imgBlur, Size(7, 7), 5, 0);
