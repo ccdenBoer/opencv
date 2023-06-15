@@ -42,34 +42,8 @@ void findColor(Mat image) {
 	int width = imageFloat.cols;
 	int height = imageFloat.rows;
 
-	// Initialize the sum of RGB values
+	// Initialize the RGB values
 	float sumR = 0, sumG = 0, sumB = 0;
-
-	//// Iterate over each pixel
-	//for (int y = 0; y < height; ++y)
-	//{
-	//	for (int x = 0; x < width; ++x)
-	//	{
-	//		// Get the pixel value
-	//		cv::Vec3f pixel = imageFloat.at<cv::Vec3f>(y, x);
-
-	//		// Accumulate the RGB values
-	//		sumR += pixel[2]; // Red
-	//		sumG += pixel[1]; // Green
-	//		sumB += pixel[0]; // Blue
-	//	}
-	//}
-
-	//// Calculate the average RGB values
-	//int totalPixels = width * height;
-	//float avgR = sumR / totalPixels;
-	//float avgG = sumG / totalPixels;
-	//float avgB = sumB / totalPixels;
-
-	
-
-	// Display the average color
-	//std::cout << "Average color (RGB): " << avgR << ", " << avgG << ", " << avgB << std::endl;
 
 	//take middle pixel
 	Vec3f pixel = imageFloat.at<cv::Vec3f>(height/2, width/2);
@@ -81,12 +55,12 @@ void findColor(Mat image) {
 	cout << "found color: " << pixel[0] << " " << pixel[1] << " " << pixel[2] << endl;
 }
 
-Point getContours(Mat image) {
-
-
+//Find where a pen is and save the shape data to its location as a new point, uses a binary masked image
+Point findPen(Mat image) {
 	vector<vector<Point>> contours;
 	vector<Vec4i> hierarchy;
 
+	//get the shapes
 	findContours(image, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 	//drawContours(img, contours, -1, Scalar(255, 0, 255), 2);
 	vector<vector<Point>> conPoly(contours.size());
@@ -94,6 +68,7 @@ Point getContours(Mat image) {
 
 	Point myPoint(0, 0);
 
+	//check each shape that needs to be a certain size
 	for (int i = 0; i < contours.size(); i++)
 	{
 		int area = contourArea(contours[i]);
@@ -108,11 +83,11 @@ Point getContours(Mat image) {
 
 			cout << conPoly[i].size() << " waht " << detectedShape << endl;
 			boundRect[i] = boundingRect(conPoly[i]);
+			//save the middle of the pen
 			myPoint.x = boundRect[i].x + boundRect[i].width / 2;
 			myPoint.y = boundRect[i].y + boundRect[i].height / 2;
 
-			//drawContours(img, conPoly, i, Scalar(255, 0, 255), 2);
-			//rectangle(img, boundRect[i].tl(), boundRect[i].br(), Scalar(0, 255, 0), 5);
+			//make sure that a shape has been found
 			if (detectedShape != None) {
 				struct drawingPoint newPoint =
 				{
@@ -127,11 +102,12 @@ Point getContours(Mat image) {
 			}
 		}
 	}
+	//show what the pen detection sees
 	imshow("pen image", image);
 	return myPoint;
 }
 
-void getShape(Mat img) {
+void detectShape(Mat img) {
 	Mat imgGray, imgBlur, imgCanny, imgDil, imgErode;
 
 	// Preprocessing
@@ -146,12 +122,14 @@ void getShape(Mat img) {
 
 	findContours(imgDil, contours, hierarchy, RETR_EXTERNAL, CHAIN_APPROX_SIMPLE);
 	//drawContours(img, contours, -1, Scalar(255, 0, 255), 2);
+	//show what the detection process sees
 	imshow("before detection image", imgDil);
 
 	vector<vector<Point>> conPoly(contours.size());
 	vector<Rect> boundRect(contours.size());
 	Mat imgCrop;
 	 
+	//go through each contour
 	for (int i = 0; i < contours.size(); i++)
 	{
 
@@ -159,6 +137,8 @@ void getShape(Mat img) {
 		//cout << area << endl;
 		string objectType;
 
+
+		//only use shapes of a certain size
 		if (area > 1000 && area < 6000) 
 		{
 			float peri = arcLength(contours[i], true);
@@ -171,6 +151,7 @@ void getShape(Mat img) {
 			imgCrop = img(boundRect[i]);
 
 			if (objCor == 3) { 
+				//make sure its an actual good triangle
 				float aspRatio = (float)boundRect[i].width / (float)boundRect[i].height;
 				if (aspRatio < 0.8 || aspRatio > 1.2) {
 					continue;
@@ -180,6 +161,8 @@ void getShape(Mat img) {
 			}
 			else if (objCor == 4)
 			{ 
+				//make sure its no crazy rectangle or square
+				//square or rectangle doesnt matter
 				float aspRatio = (float)boundRect[i].width / (float)boundRect[i].height;
 				//cout << aspRatio << endl;
 				if (aspRatio> 0.7 && aspRatio< 1.3){ objectType = "Square"; }
@@ -187,6 +170,7 @@ void getShape(Mat img) {
 				detectedShape = Square;
 			}
 			else if (objCor > 4) { 
+				//make sure its an actual circle and no random polygon
 				float aspRatio = (float)boundRect[i].width / (float)boundRect[i].height;
 				if (aspRatio < 0.8 || aspRatio > 1.2) {
 					continue;
@@ -199,16 +183,20 @@ void getShape(Mat img) {
 				detectedShape = Circle;
 			}
 			else {
+				//dont save other shapes
 				continue;
 			}
 
+			//save the shapes widht and height
 			detectedHeight = boundRect[i].height;
 			detectedWidth = boundRect[i].width;
 
 			cout << "Detected shape " << objectType << " " << detectedHeight << " " << detectedWidth << " " << area << endl;
 
+			//save the shapes color
 			findColor(imgCrop);
 
+			//show what shape was detected
 			cvtColor(imgDil, imgDil, COLOR_GRAY2BGR);
 			drawContours(imgDil, conPoly, i, Scalar(255, 0, 255), 2);
 			rectangle(imgDil, boundRect[i].tl(), boundRect[i].br(), Scalar(0, 255, 0), 5);
@@ -219,6 +207,7 @@ void getShape(Mat img) {
 	}
 }
 
+//draw each point and its shape on an image
 void drawOnCanvas(vector<struct drawingPoint> newPoints)
 {
 
@@ -254,20 +243,20 @@ void drawOnCanvas(vector<struct drawingPoint> newPoints)
 
 void findPoints(Mat img)
 {
+	//HSV format for color detection
 	Mat imgHSV;
 	cvtColor(img, imgHSV, COLOR_BGR2HSV);
 
-
+	//filter the pen color (in this case a blue switch joycon)
 	Scalar lower(penColors[0], penColors[1], penColors[2]);
 	Scalar upper(penColors[3], penColors[4], penColors[5]);
 	Mat mask;
 	
 	inRange(imgHSV, lower, upper, mask);
-	//imshow(to_string(i), mask);
-	getContours(mask);
-	//if (myPoint.x != 0 ) {
-	//	newPoints.push_back({ myPoint.x,myPoint.y,i });
-	//}
+
+	//use the color mask to detect a large enough one to add as a point
+	findPen(mask);
+
 	
 }
 
@@ -277,47 +266,54 @@ void main() {
 	while (true) {
 
 		cap.read(img);
-		getShape(img);
+
+		//find a shape and save its stats
+		detectShape(img);
+
+		//find a pen and save its current point and shape settings
 		findPoints(img);
+
+		//draw all points on the image
 		drawOnCanvas(newPoints);
-
 		
-
 		imshow("Image", img);
 		waitKey(1);
 	}
 }
 
-void main2() {
-
-	string path = "C:/Users/coend/Downloads/Images/Images/Images1/kerstballen.bmp";
-	cap.read(img);
-	Mat imgHSV, mask;
-	int hmin = 0, smin = 110, vmin = 153;
-	int hmax = 19, smax = 240, vmax = 255;
-
-	cvtColor(img, imgHSV, COLOR_BGR2HSV);
-
-	namedWindow("Trackbars", (640, 200));
-	createTrackbar("Hue Min", "Trackbars", &hmin, 179);
-	createTrackbar("Hue Max", "Trackbars", &hmax, 179);
-	createTrackbar("Sat Min", "Trackbars", &smin, 255);
-	createTrackbar("Sat Max", "Trackbars", &smax, 255);
-	createTrackbar("Val Min", "Trackbars", &vmin, 255);
-	createTrackbar("Val Max", "Trackbars", &vmax, 255);
-
-	while (true) {
-		cap.read(img);
-		cvtColor(img, imgHSV, COLOR_BGR2HSV);
-
-		Scalar lower(hmin, smin, vmin);
-		Scalar upper(hmax, smax, vmax);
-		inRange(imgHSV, lower, upper, mask);
-
-		imshow("Image", img);
-		imshow("Image HSV", imgHSV);
-		imshow("Image Mask", mask);
-		waitKey(1);
-	}
-}
+//
+// To find pen color
+// 
+//void main() {
+//
+//	string path = "C:/Users/coend/Downloads/Images/Images/Images1/kerstballen.bmp";
+//	cap.read(img);
+//	Mat imgHSV, mask;
+//	int hmin = 0, smin = 110, vmin = 153;
+//	int hmax = 19, smax = 240, vmax = 255;
+//
+//	cvtColor(img, imgHSV, COLOR_BGR2HSV);
+//
+//	namedWindow("Trackbars", (640, 200));
+//	createTrackbar("Hue Min", "Trackbars", &hmin, 179);
+//	createTrackbar("Hue Max", "Trackbars", &hmax, 179);
+//	createTrackbar("Sat Min", "Trackbars", &smin, 255);
+//	createTrackbar("Sat Max", "Trackbars", &smax, 255);
+//	createTrackbar("Val Min", "Trackbars", &vmin, 255);
+//	createTrackbar("Val Max", "Trackbars", &vmax, 255);
+//
+//	while (true) {
+//		cap.read(img);
+//		cvtColor(img, imgHSV, COLOR_BGR2HSV);
+//
+//		Scalar lower(hmin, smin, vmin);
+//		Scalar upper(hmax, smax, vmax);
+//		inRange(imgHSV, lower, upper, mask);
+//
+//		imshow("Image", img);
+//		imshow("Image HSV", imgHSV);
+//		imshow("Image Mask", mask);
+//		waitKey(1);
+//	}
+//}
 

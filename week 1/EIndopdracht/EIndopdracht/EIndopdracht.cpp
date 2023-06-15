@@ -224,12 +224,14 @@ void drawOnCanvas(vector<struct drawingPoint> newPoints)
 			rectangle(img, Point(newPoints[i].points[0] - newPoints[i].width / 2, newPoints[i].points[1] - newPoints[i].heigth / 2), Point(newPoints[i].points[0] + newPoints[i].width / 2, newPoints[i].points[1] + newPoints[i].heigth / 2), Scalar(newPoints[i].color[0], newPoints[i].color[1], newPoints[i].color[2]), FILLED);
 			break;
 		case Triangle:
+			//The triangle will take the middle point and make the apropriate lines for it
 			trianglePoints.push_back(Point(newPoints[i].points[0], newPoints[i].points[1] - newPoints[i].heigth / 2));
 			trianglePoints.push_back(Point(newPoints[i].points[0] + newPoints[i].width / 2, newPoints[i].points[1] + newPoints[i].heigth / 2));
 			trianglePoints.push_back(Point(newPoints[i].points[0] - newPoints[i].width / 2, newPoints[i].points[1] + newPoints[i].heigth / 2));
 
 			triangles.push_back(trianglePoints);
 
+			//draw the triangle
 			fillPoly(img, triangles, Scalar(newPoints[i].color[0], newPoints[i].color[1], newPoints[i].color[2]));
 			trianglePoints.clear();
 			triangles.clear();
